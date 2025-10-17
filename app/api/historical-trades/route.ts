@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     if (trades.length === 0) {
       return NextResponse.json({ 
         trades: [], 
-        message: "No more trades found",
+        message: "No more historical trades available",
         hasMore: false 
       })
     }

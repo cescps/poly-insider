@@ -4,9 +4,10 @@ import { useEffect, useState, useCallback } from "react"
 import { FilteredTrade } from "@/types"
 import { FILTER_CONFIG } from "@/lib/config"
 import { formatCurrency } from "@/lib/filters"
-import Header from "@/components/Header"
 import TradesTable from "@/components/TradesTable"
 import LoadingSkeleton from "@/components/LoadingSkeleton"
+import { Button } from "@/components/ui/button"
+import { RefreshCw } from "lucide-react"
 
 const POLLING_INTERVAL = FILTER_CONFIG.POLLING_INTERVAL_MS
 const MAX_DISPLAY_TRADES = 100
@@ -224,7 +225,7 @@ export default function Home() {
         
         // Stop if we've found no more trades
         if (!data.hasMore) {
-          console.log("No more historical trades available from API")
+          console.log("Reached end of historical trades data")
           break
         }
       }
@@ -307,76 +308,81 @@ export default function Home() {
   }, [fetchTrades, isRefreshing, isLoading])
 
   return (
-    <main className="min-h-screen relative overflow-hidden">
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-      <div className="relative container mx-auto px-4 py-6 md:py-12 max-w-7xl">
-            <Header
-              onRefresh={handleRefresh}
-              isRefreshing={isRefreshing}
-            />
+    <main className="min-h-screen bg-gray-50 dark:bg-black">
+      <div className="container mx-auto px-3 sm:px-4 pt-6 pb-4 sm:pt-8 sm:pb-8 max-w-full">
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-4 sm:p-6">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                    Polymarket Insider Trades
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm sm:text-base">
+                    Real-time monitoring of large trades from new wallets with concentrated market activity
+                  </p>
+                </div>
+                <Button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  variant="outline"
+                  size="sm"
+                  aria-label="Refresh trades"
+                  className="self-start sm:self-auto dark:border-gray-700 dark:hover:bg-gray-800"
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+                  />
+                  Refresh
+                </Button>
+              </div>
+              
+              {error && (
+                <div className="rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950 p-3 sm:p-4 text-red-600 dark:text-red-400 text-sm sm:text-base">
+                  {error}
+                </div>
+              )}
 
-        {error && (
-          <div className="mb-6 rounded-xl border border-destructive/50 bg-destructive/10 backdrop-blur-sm p-4 text-destructive shadow-lg">
-            <div className="flex items-center gap-2">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {error}
-            </div>
-          </div>
-        )}
-
-        {isLoading ? (
-          <LoadingSkeleton />
-        ) : (
-          <>
-            <div className="mb-4 md:mb-6 bg-card/30 backdrop-blur-sm border rounded-xl p-3 md:p-4 shadow-sm">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="text-xs md:text-sm font-medium">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="text-xs sm:text-sm font-medium">
                   {trades.length === 0 ? (
-                    <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="text-gray-500 dark:text-gray-400">
                       {isSearchingHistory ? (
-                        <>
-                          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                          <span className="text-xs md:text-sm">Searching through past trades...</span>
-                        </>
+                        <span>Searching through past trades...</span>
                       ) : (
-                        <>
-                          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-xs md:text-sm">
-                            Monitoring: New wallets (&lt;{FILTER_CONFIG.MAX_ACCOUNT_AGE_DAYS} days) • {" "}
-                            {FILTER_CONFIG.MIN_MARKETS_TRADED}-{FILTER_CONFIG.MAX_MARKETS_TRADED} markets • 
-                            Trades &gt; ${FILTER_CONFIG.MIN_TRADE_SIZE_USD.toLocaleString()}
-                          </span>
-                        </>
+                        <span>
+                          Monitoring: New wallets (&lt;{FILTER_CONFIG.MAX_ACCOUNT_AGE_DAYS} days) • {" "}
+                          {FILTER_CONFIG.MIN_MARKETS_TRADED}-{FILTER_CONFIG.MAX_MARKETS_TRADED} markets • 
+                          Trades &gt; ${FILTER_CONFIG.MIN_TRADE_SIZE_USD.toLocaleString()}
+                        </span>
                       )}
                     </div>
                   ) : (
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 md:h-8 md:w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                          <span className="text-base md:text-lg font-bold text-green-600">{trades.length}</span>
-                        </div>
-                        <span className="text-foreground text-sm md:text-base">
-                          Insider Trade{trades.length !== 1 ? "s" : ""} Found
-                        </span>
-                      </div>
-                      <span className="text-xs text-muted-foreground/70 bg-muted/50 px-2 py-1 rounded-md">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <span className="text-gray-900 dark:text-white">
+                        {trades.length} Insider Trade{trades.length !== 1 ? "s" : ""} Found
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         Live updates every {FILTER_CONFIG.POLLING_INTERVAL_MS / 1000}s
                       </span>
                     </div>
                   )}
                 </div>
                 {isSearchingHistory && (
-                  <div className="flex items-center gap-2 text-xs md:text-sm font-medium">
-                    <div className="h-3 w-3 md:h-4 md:w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                    <span className="text-primary">Searching history...</span>
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <div className="h-4 w-4 rounded-full border-2 border-gray-900 dark:border-white border-t-transparent animate-spin" />
+                    <span className="text-gray-700 dark:text-gray-300">Searching history...</span>
                   </div>
                 )}
               </div>
             </div>
-            <TradesTable trades={trades} />
-          </>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : (
+          <TradesTable trades={trades} />
         )}
       </div>
     </main>
