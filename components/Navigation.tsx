@@ -111,6 +111,7 @@ const Navigation = () => {
             style={{ border: "none", overflow: "hidden", display: "block" }}
             scrolling="no"
             title="Polymarket Ticker"
+            sandbox="allow-scripts allow-same-origin"
           />
         </div>
       </div>
